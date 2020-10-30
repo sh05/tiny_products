@@ -62,7 +62,7 @@ class Towers:
         time.sleep(self.delay)
 
 if __name__ == "__main__":
-    N = 20
+    N = 5
     M = N
     assert N >= M, "M must be under N"
     towers = Towers([Tower(N) if i == 0 else Tower() for i in range(3)], 0)
