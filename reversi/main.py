@@ -18,7 +18,6 @@ Y = RowIdx
 Coord = Tuple[X, Y]
 
 class Stage:
-
     def __init__(self, row: int =8, col: int =8, p_num: int =2):
         self.r_len: int = row
         self.c_len: int = col
