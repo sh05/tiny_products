@@ -1,17 +1,11 @@
-from fastapi import FastAPI, Response
+from typing import List, Dict, Tuple
 from pydantic import BaseModel
-from starlette.websockets import WebSocket
+
+from fastapi import FastAPI, WebSocket
+from fastapi.responses import HTMLResponse
 from starlette.middleware.cors import CORSMiddleware 
 
 app = FastAPI()
-
-# 接続中のクライアントを識別するためのIDを格納
-key2name = {}
-key2ws = {}
-
-INDEX_FILE = "/app/index.html"
-with open(INDEX_FILE) as f:
-    data = f.read()
 
 # CORSを回避するために追加
 app.add_middleware(
@@ -22,29 +16,87 @@ app.add_middleware(
     allow_headers=["*"]       # 追記により追加
 )
 
+
+INDEX_FILE = "/app/tmp.html"
+CHAT_FILE = "/app/chat.html"
+with open(INDEX_FILE) as f:
+    index_html = f.read()
+
+with open(CHAT_FILE) as f:
+    chat_room_html = f.read()
+
 # Pydanticを用いたAPIに渡されるデータの定義 ValidationやDocumentationの機能が追加される
 class User(BaseModel):
     name: str
+    room_id: int
+
+
+class ConnectionManager:
+    def __init__(self):
+        self.rooms: List[str] = []
+        self.active_connections: List[List[WebSocket]] = []
+        self.members: List[List[str]] = []
+
+    def create_room(self, room_name: str):
+        self.rooms.append(room_name)
+        self.active_connections.append([])
+        self.members.append([])
+
+    async def connect(self, websocket: WebSocket, room_id: int, user_name: str):
+        await websocket.accept()
+        self.active_connections[room_id].append(websocket)
+        self.members[room_id].append(user_name)
+
+    def disconnect(self, websocket: WebSocket, room_id: int, user_name: str):
+        self.active_connections[room_id].remove(websocket)
+        self.members[room_id].remove(user_name)
+
+    async def send_personal_message(self, message: str, websocket: WebSocket):
+        await websocket.send_text(message)
+
+    async def broadcast(self, room_id: int, message: str):
+        for connection in self.active_connections[room_id]:
+            await connection.send_text(message)
+
+
+manager = ConnectionManager()
+
 
 @app.get("/")
-def get_index():
-    return Response(content=data, media_type="text/html")
+async def get():
+    return HTMLResponse(index_html)
 
-# WebSockets用のエンドポイント
-@app.websocket("/ws")
-async def websocket_endpoint(ws: WebSocket):
-    await ws.accept()
-    # クライアントを識別するためのIDを取得
-    key = ws.headers.get('sec-websocket-key')
-    key2ws[key] = ws
+
+@app.get("/rooms")
+async def get_rooms():
+    return {"rooms": manager.rooms}
+
+
+@app.post("/rooms/{room_name}")
+async def create_room(room_name: str):
+    manager.create_room(room_name)
+    return {"room_id": len(manager.rooms) - 1}
+
+
+@app.get("/{room_id}/members")
+async def get_rooms(room_id: int):
+    return {"members": manager.members[room_id]}
+
+
+@app.post("/chat")
+async def enter_room(user: User):
+    return HTMLResponse(chat_room_html % (user.name, user.room_id, user.name))
+
+
+@app.websocket("/ws/{room_id}/{user_name}")
+async def websocket_endpoint(websocket: WebSocket, room_id: int, user_name: str):
+    await manager.connect(websocket, room_id, user_name)
+    await manager.broadcast(room_id, f"Client #{user_name} joined the chat")
     try:
         while True:
-            # クライアントからメッセージを受信
-            data = await ws.receive_text()
-            # 接続中のクライアントそれぞれにメッセージを送信（ブロードキャスト）
-            for client in key2ws.values():
-                await client.send_text(f"ID: {key} | Message: {data}")
+            data = await websocket.receive_text()
+            await manager.send_personal_message(f"You wrote: {data}", websocket)
+            await manager.broadcast(room_id, f"Client #{user_name} says: {message}")
     except:
-        await ws.close()
-        # 接続が切れた場合、当該クライアントを削除する
-        del clients[key]
+        manager.disconnect(websocket, room_id, user_name)
+        await manager.broadcast(room_id, f"Client #{user_name} left the chat")

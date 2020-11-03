@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Chat</title>
+  </head>
+  <body>
+    <h1>WebSocket Chat</h1>
+      <h2>Your Name: </h2>
+      <input type="text" id="user_name" autocomplete="off"/>
+      <h2>Room: </h2>
+      <p>create</p>
+      <input type="text" id="room_name" autocomplete="off"/> <span id="rooms_exists"></span>
+      <button onclick="createRoom()">create and enter</button>
+      <p>select</p>
+      <button onclick="selectRoom()"> enter</button>
+    <div id='chat'>
+    </civ>
+    <script>
+      function getRooms() {
+        // 1. new XMLHttpRequest オブジェクトを作成
+        let xhr = new XMLHttpRequest();
+        // 2. 設定: URL /article/.../load に対する GET-リクエスト
+        xhr.open('GET', 'http://localhost:80/rooms');
+        xhr.responseType = 'json';
+        // 3. ネットワーク経由でリクエスト送信
+        xhr.send();
+
+        // 4. レスポンスを受け取った後に呼び出されます
+        xhr.onload = function() {
+          console.log(xhr.response);
+          return  xhr.response.rooms;
+        };
+      };
+      let rooms = getRooms();
+
+      window.onload = function () {
+        document.getElementById( "room_name" ).onkeyup = function(){
+        let room_name = document.getElementById( "room_name" ).value;
+        document.getElementById( "rooms_exists" ).innerHTML = room_name;
+        };
+      }
+      function createRoom() {
+        console.log("clicked")
+        let room_name = document.getElementById( "room_name" ).value;
+        let formData = new FormData();
+        formData.append("room_name", room_name);
+        // send it out
+        let xhr = new XMLHttpRequest();
+        xhr.open('POST', 'http://localhost:80/rooms/' + room_name);
+        xhr.responseType = 'json';
+        // 3. ネットワーク経由でリクエスト送信
+        xhr.send();
+
+        // 4. レスポンスを受け取った後に呼び出されます
+        xhr.onload = function() {
+          console.log(xhr.response);
+          let room_id =  xhr.response.room_id;
+          let user_name = document.getElementById( "user_name" ).value;
+          let xhr_second = new XMLHttpRequest();
+          let json = JSON.stringify({
+            "name": user_name,
+            "room_id": room_id
+          });
+
+          xhr_second.open("POST", 'http://localhost:80/chat')
+          xhr_second.setRequestHeader('Content-type', 'application/json; charset=utf-8');
+          // xhr.responseType = 'document';
+          xhr_second.send(json);
+          xhr_second.onload = function() {
+            let chat_dom = xhr_second.response;
+            console.log(chat_dom)
+            document.querySelector("body").innerHTML = chat_dom;
+            // document.getElementById( "chat" ).innerHTML = chat_dom;
+          };
+        }
+      }
+    </script>
+  </body>
+</html>

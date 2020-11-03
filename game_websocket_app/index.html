@@ -1,32 +1,61 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>game websocket app</title>
+        <title>Chat</title>
     </head>
     <body>
-        <h1>game websocket app</h1>
+        <h1>WebSocket Chat</h1>
         <form action="" onsubmit="sendMessage(event)">
+            <h2>Your Name: <span id="ws-id"></span></h2>
             <input type="text" id="messageText" autocomplete="off"/>
             <button>Send</button>
         </form>
         <ul id='messages'>
         </ul>
         <script>
-            // var ws = new WebSocket("ws://localhost:80/ws");
-            var ws = new WebSocket("ws://sh05mbp.local:80/ws");
-            ws.onmessage = function(event) {
-                var messages = document.getElementById('messages')
-                var message = document.createElement('li')
-                var content = document.createTextNode(event.data)
-                message.appendChild(content)
-                messages.appendChild(message)
+            // 1. new XMLHttpRequest オブジェクトを作成
+            let xhr = new XMLHttpRequest();
+
+            // 2. 設定: URL /article/.../load に対する GET-リクエスト
+            xhr.open('GET', '/rooms');
+
+            // 3. ネットワーク経由でリクエスト送信
+            xhr.send();
+
+            // 4. レスポンスを受け取った後に呼び出されます
+            xhr.onload = function() {
+                if (xhr.status != 200) { // レスポンスの HTTP ステータスを解析
+                    alert(`Error ${xhr.status}: ${xhr.statusText}`); // e.g. 404: Not Found
+                } else { // show the result
+                    alert(`Done, got ${xhr.response.length} bytes`); // responseText is the server
+                }
             };
+            xhr.onprogress = function(event) {
+                if (event.lengthComputable) {
+                    alert(`Received ${event.loaded} of ${event.total} bytes`);
+                } else {
+                    alert(`Received ${event.loaded} bytes`); // no Content-Length
+                }
+            };
+            xhr.onerror = function() {
+                alert("Request failed");
+            };
+
+            document.querySelector("#ws-id").textContent = %s;
+            var ws = new WebSocket(`ws://localhost:80/ws/%d/%s`);
+            ws.onmessage = function(event) {
+                            var messages = document.getElementById('messages')
+                            var message = document.createElement('li')
+                            var content = document.createTextNode(event.data)
+                            message.appendChild(content)
+                            messages.appendChild(message)
+                        };
             function sendMessage(event) {
-                var input = document.getElementById("messageText")
-                ws.send(input.value)
-                input.value = ''
-                event.preventDefault()
-            }
+                            var input = document.getElementById("messageText")
+                            ws.send(input.value)
+                            input.value = ''
+                            event.preventDefault()
+                        }
         </script>
     </body>
 </html>
