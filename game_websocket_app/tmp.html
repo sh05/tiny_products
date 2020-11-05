@@ -7,11 +7,11 @@
     <h1>WebSocket Chat</h1>
     <form name="select" action="/chat" method="post">
       <h2>Your Name: </h2>
-      <input value="taro" type="text" id="user_name" name="user_name" autocomplete="off"/>
+      <input value="taro" type="text" id="user_name" name="user_name" required autocomplete="off"/>
       <h2>Room: </h2>
       <h3>select</h3>
-      <input value=0 type="text" id="room_id" name="room_id" autocomplete="off"/> <span id="rooms_exists"></span>
-      <button onclick="selectRoom()"> enter</button>
+      <input value=0 type="text" id="room_id" name="room_id" required autocomplete="off"/> <span id="rooms_exists"></span>
+      <button type="submit">enter</button>
     </form>
       <h3>create</h3>
       <input type="text" id="room_name" name="room_name" autocomplete="off"/> <span id="rooms_exists"></span>
@@ -30,7 +30,6 @@
 
         // 4. レスポンスを受け取った後に呼び出されます
         xhr.onload = function() {
-          console.log(xhr.response);
           return  xhr.response.rooms;
         };
       };
@@ -38,17 +37,15 @@
 
       window.onload = function () {
         document.getElementById( "room_name" ).onkeyup = function(){
-        let room_name = document.getElementById( "room_name" ).value;
-        document.getElementById( "rooms_exists" ).innerHTML = room_name;
+          let room_name = document.getElementById( "room_name" ).value;
+          if (rooms.index0f(room_name) >= 0) {
+            document.getElementById( "rooms_exists" ).innerHTML = "既に存在します";
+          } else {
+            document.getElementById( "rooms_exists" ).innerHTML = "";
+          }
         };
       }
-      function selectRoom() {
-        var f = document.forms["select"];
-        f.method = "POST"; 
-        f.submit(); 
-      }
       function createRoom() {
-        console.log("clicked")
         let room_name = document.getElementById( "room_name" ).value;
         let formData = new FormData();
         formData.append("room_name", room_name);
@@ -58,28 +55,24 @@
         xhr.responseType = 'json';
         // 3. ネットワーク経由でリクエスト送信
         xhr.send();
-
         // 4. レスポンスを受け取った後に呼び出されます
         xhr.onload = function() {
-          console.log(xhr.response);
-          let room_id =  xhr.response.room_id;
-          let user_name = document.getElementById( "user_name" ).value;
-          let xhr_second = new XMLHttpRequest();
-          let json = JSON.stringify({
-            "name": user_name,
-            "room_id": room_id
-          });
-
-          xhr_second.open("POST", 'http://localhost:80/chat')
-          xhr_second.setRequestHeader('Content-type', 'application/json; charset=utf-8');
-          // xhr.responseType = 'document';
-          xhr_second.send(json);
-          xhr_second.onload = function() {
-            let chat_dom = xhr_second.response;
-            console.log(chat_dom)
-            document.querySelector("body").innerHTML = chat_dom;
-            // document.getElementById( "chat" ).innerHTML = chat_dom;
-          };
+          // let room_id =  xhr.response.room_id;
+          // let user_name = document.getElementById( "user_name" ).value;
+          // let xhr_second = new XMLHttpRequest();
+          // let json = JSON.stringify({
+          //   "name": user_name,
+          //   "room_id": room_id
+          // });
+          // xhr_second.open("POST", 'http://localhost:80/chat')
+          // xhr_second.setRequestHeader('Content-type', 'application/json; charset=utf-8');
+          // // xhr.responseType = 'document';
+          // xhr_second.send(json);
+          // xhr_second.onload = function() {
+          //   let chat_dom = xhr_second.response;
+          //   document.querySelector("body").innerHTML = chat_dom;
+          //   // document.getElementById( "chat" ).innerHTML = chat_dom;
+          // };
         }
       }
     </script>

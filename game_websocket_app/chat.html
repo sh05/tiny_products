@@ -5,29 +5,49 @@
     <title>chat</title>
   </head>
   <body>
+    <h1>Chat room</h1>
     <h2>Your Name: %s</h2>
     <h2>Room Name: %s</h2>
     <input type="text" id="messageText" autocomplete="off"/>
-    <button onclick="sendMessage(event)">Send</button>
+    <button id="TXT:" onclick="sendMessage(event)">Send</button>
+    <div id="hee"></div>
+    <button id="HEE:" onclick="sendMessage(event)">へぇぇ</button>
     <ul id='messages'>
     </ul>
     <script>
       let url = `ws://localhost:80/ws/%d/%s`;
-      console.log(url);
       var ws = new WebSocket(url);
       ws.onmessage = function(event) {
-              var messages = document.getElementById('messages')
-              var message = document.createElement('li')
-              var content = document.createTextNode(event.data)
-              message.appendChild(content)
-              messages.appendChild(message)
-            };
+        var data = event.data
+        var head = data.slice(0, 4)
+        var body = data.slice(4)
+        var messages = document.getElementById('messages')
+        var message = document.createElement('li')
+        var content = document.createTextNode(body)
+        if (head == "TXT:") {
+          message.appendChild(content)
+          messages.appendChild(message)
+        } else {
+          document.getElementById( "hee" ).innerHTML = body;
+        }
+      };
       function sendMessage(event) {
-              var input = document.getElementById("messageText")
-              ws.send(input.value)
-              input.value = ''
-              // event.preventDefault()
-            }
+        let head = event.target.id;
+        if (head == "HEE:") {
+          ws.send(head)
+          event.preventDefault()
+          return 
+        }
+        var input = document.getElementById("messageText")
+        if (input.value == '') {
+          event.preventDefault()
+          return 
+        }
+        ws.send(head + input.value)
+        input.value = ''
+        event.preventDefault()
+        return 
+      }
     </script>
   </body>
 </html>

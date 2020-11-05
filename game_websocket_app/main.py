@@ -34,13 +34,15 @@ class User(BaseModel):
 class ConnectionManager:
     def __init__(self):
         self.rooms: List[str] = ["alpha", "beta"]
-        self.active_connections: List[List[WebSocket]] = [[],[]]
-        self.members: List[List[str]] = [[],[]]
+        self.active_connections: List[List[WebSocket]] = [[] for i in range(len(self.rooms))]
+        self.members: List[List[str]] = [[] for i in range(len(self.rooms))]
+        self.hees = [0 for i in range(len(self.rooms))]
 
     def create_room(self, room_name: str):
         self.rooms.append(room_name)
         self.active_connections.append([])
         self.members.append([])
+        self.hees.append(0)
 
     async def connect(self, websocket: WebSocket, room_id: int, user_name: str):
         await websocket.accept()
@@ -91,12 +93,21 @@ async def enter_room(room_id: int = Form(...), user_name: str = Form(...)):
 @app.websocket("/ws/{room_id}/{user_name}")
 async def websocket_endpoint(websocket: WebSocket, room_id: int, user_name: str):
     await manager.connect(websocket, room_id, user_name)
-    await manager.broadcast(room_id, f"Client #{user_name} joined the chat")
+    await manager.broadcast(room_id, f"TXT:{user_name} joined the chat")
+    await manager.broadcast(room_id, f"HEE:{manager.hees[room_id]}")
+    await manager.send_personal_message(f"TXT:Welcome to {manager.rooms[room_id]}", websocket)
     try:
         while True:
             data = await websocket.receive_text()
-            await manager.send_personal_message(f"You wrote: {data}", websocket)
-            await manager.broadcast(room_id, f"Client #{user_name} says: {message}")
+            head = data[:4]
+            body = data[4:]
+            if head == "TXT:":
+                await manager.send_personal_message(f"{head}You wrote: {body}", websocket)
+                message = f"{head}{user_name} says: {body}"
+            elif head == "HEE:":
+                manager.hees[room_id] += 1
+                message = f"{head}{manager.hees[room_id]}"
+            await manager.broadcast(room_id, message)
     except:
         manager.disconnect(websocket, room_id, user_name)
-        await manager.broadcast(room_id, f"Client #{user_name} left the chat")
+        await manager.broadcast(room_id, f"TXT:{user_name} left the chat")
