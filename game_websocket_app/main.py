@@ -1,7 +1,7 @@
 from typing import List, Dict, Tuple
 from pydantic import BaseModel
 
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI, WebSocket, Form
 from fastapi.responses import HTMLResponse
 from starlette.middleware.cors import CORSMiddleware 
 
@@ -33,9 +33,9 @@ class User(BaseModel):
 
 class ConnectionManager:
     def __init__(self):
-        self.rooms: List[str] = []
-        self.active_connections: List[List[WebSocket]] = []
-        self.members: List[List[str]] = []
+        self.rooms: List[str] = ["alpha", "beta"]
+        self.active_connections: List[List[WebSocket]] = [[],[]]
+        self.members: List[List[str]] = [[],[]]
 
     def create_room(self, room_name: str):
         self.rooms.append(room_name)
@@ -84,8 +84,8 @@ async def get_rooms(room_id: int):
 
 
 @app.post("/chat")
-async def enter_room(user: User):
-    return HTMLResponse(chat_room_html % (user.name, user.room_id, user.name))
+async def enter_room(room_id: int = Form(...), user_name: str = Form(...)):
+    return HTMLResponse(chat_room_html % (user_name, manager.rooms[room_id], room_id, user_name))
 
 
 @app.websocket("/ws/{room_id}/{user_name}")
