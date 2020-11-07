@@ -1,0 +1,6 @@
+FROM node:lts-slim
+
+WORKDIR /home/work
+RUN npm install -g @vue/cli
+RUN npm install -g @vue/cli-service-global
+RUN npm install --save-dev html-webpack-plugin preload-webpack-plugin

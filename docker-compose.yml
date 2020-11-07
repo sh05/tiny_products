@@ -1,12 +1,24 @@
 version: "2.3"
 services:
-  game_websocket_app:
+  hee_chat_back:
     command: /bin/bash -c "uvicorn app.main:app --reload --host 0.0.0.0 --port 80"
     build:
-      context: ./game_websocket_app/docker
+      context: ./hee_chat/docker
+      dockerfile: DockerfileBack
     volumes:
-      - ./game_websocket_app/:/app
+      - ./hee_chat/:/app
     working_dir: /
-    container_name: game_websocket_app
+    container_name: hee_chat_back
     ports:
       - "80:80"
+  hee_chat_front:
+    command: npm run serve
+    build:
+      context: ./hee_chat/docker
+      dockerfile: DockerfileFront
+    volumes:
+      - ./hee_chat:/home/work
+    working_dir: /home/work/hee_chat
+    container_name: hee_chat_front
+    ports:
+      - "8080:8080"

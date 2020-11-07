@@ -1,29 +1,32 @@
 from typing import List, Dict, Tuple
 from pydantic import BaseModel
+import time
 
 from fastapi import FastAPI, WebSocket, Form
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, StreamingResponse
 from starlette.middleware.cors import CORSMiddleware 
 
 app = FastAPI()
 
 # CORSを回避するために追加
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,   # 追記により追加
-    allow_methods=["*"],      # 追記により追加
-    allow_headers=["*"]       # 追記により追加
-)
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=["*"],
+#     allow_credentials=True,   # 追記により追加
+#     allow_methods=["*"],      # 追記により追加
+#     allow_headers=["*"]       # 追記により追加
+# )
 
 
-INDEX_FILE = "/app/tmp.html"
-CHAT_FILE = "/app/chat.html"
+DIR = "/app/dist/"
+INDEX_FILE = DIR + "index.html"
+TALKS_FILE = DIR + "talks.html"
+
 with open(INDEX_FILE) as f:
     index_html = f.read()
 
-with open(CHAT_FILE) as f:
-    chat_room_html = f.read()
+with open(TALKS_FILE) as f:
+    talks_html = f.read()
 
 # Pydanticを用いたAPIに渡されるデータの定義 ValidationやDocumentationの機能が追加される
 class User(BaseModel):
@@ -64,11 +67,6 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 
-@app.get("/")
-async def get():
-    return HTMLResponse(index_html)
-
-
 @app.get("/rooms")
 async def get_rooms():
     return {"rooms": manager.rooms}
@@ -85,9 +83,9 @@ async def get_rooms(room_id: int):
     return {"members": manager.members[room_id]}
 
 
-@app.post("/chat")
+@app.post("/talks")
 async def enter_room(room_id: int = Form(...), user_name: str = Form(...)):
-    return HTMLResponse(chat_room_html % (user_name, manager.rooms[room_id], room_id, user_name))
+    return HTMLResponse(talks_html % (user_name, manager.rooms[room_id], room_id, user_name))
 
 
 @app.websocket("/ws/{room_id}/{user_name}")

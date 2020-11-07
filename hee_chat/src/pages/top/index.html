@@ -2,23 +2,33 @@
 <html>
   <head>
     <title>Chat</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
   </head>
   <body>
+    <div id="app">
+      {{ message }}
+    </div>
     <h1>WebSocket Chat</h1>
     <form name="select" action="/chat" method="post">
       <h2>Your Name: </h2>
       <input value="taro" type="text" id="user_name" name="user_name" required autocomplete="off"/>
       <h2>Room: </h2>
       <h3>select</h3>
-      <input value=0 type="text" id="room_id" name="room_id" required autocomplete="off"/> <span id="rooms_exists"></span>
+      <!-- <input value=0 type="text" id="room_id" name="room_id" required autocomplete="off"/> <span id="rooms_exists"></span> -->
+<input type="radio" name="hyouka" value="good" checked="checked">良い
+<input type="radio" name="hyouka" value="bad">悪い
       <button type="submit">enter</button>
     </form>
       <h3>create</h3>
       <input type="text" id="room_name" name="room_name" autocomplete="off"/> <span id="rooms_exists"></span>
       <button onclick="createRoom()">create and enter</button>
-    <div id='chat'>
-    </civ>
     <script>
+      var app = new Vue({
+        el: '#app',
+        data: {
+          message: 'Hello Vue!'
+        }
+      })
       function getRooms() {
         // 1. new XMLHttpRequest オブジェクトを作成
         let xhr = new XMLHttpRequest();
@@ -33,18 +43,22 @@
           return  xhr.response.rooms;
         };
       };
-      let rooms = getRooms();
+      var rooms = [];
+       ooms = getRooms();
 
       window.onload = function () {
         document.getElementById( "room_name" ).onkeyup = function(){
           let room_name = document.getElementById( "room_name" ).value;
           if (rooms.index0f(room_name) >= 0) {
             document.getElementById( "rooms_exists" ).innerHTML = "既に存在します";
+            console.log(1)
           } else {
             document.getElementById( "rooms_exists" ).innerHTML = "";
+            console.log(2)
           }
         };
       }
+
       function createRoom() {
         let room_name = document.getElementById( "room_name" ).value;
         let formData = new FormData();
