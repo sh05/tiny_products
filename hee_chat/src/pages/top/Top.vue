@@ -1,20 +1,18 @@
 <template>
   <div id="app">
     <h1>hello</h1>
-    <!-- <h1>WebSocket Chat</h1> -->
-    <!-- <form name="select" action="/chat" method="post"> -->
-    <!--   <h2>Your Name: </h2> -->
-    <!--   <input value="taro" type="text" id="user_name" name="user_name" required autocomplete="off"/> -->
-    <!--   <h2>Room: </h2> -->
-    <!--   <h3>select</h3> -->
-    <!--   <1!-- <input value=0 type="text" id="room_id" name="room_id" required autocomplete="off"/> <span id="rooms_exists"></span> --1> -->
-<!-- <input type="radio" name="hyouka" value="good" checked="checked">良い -->
-<!-- <input type="radio" name="hyouka" value="bad">悪い -->
-    <!--   <button type="submit">enter</button> -->
-    <!-- </form> -->
-    <!--   <h3>create</h3> -->
-    <!--   <input type="text" id="room_name" name="room_name" autocomplete="off"/> <span id="rooms_exists"></span> -->
-    <!--   <button onclick="createRoom()">create and enter</button> -->
+    <h1>WebSocket Chat</h1>
+      <h2>Your Name: </h2>
+      <input type="text" v-model="user_name" autocomplete="off"/>
+      <h2>Room: </h2>
+      <h3>select</h3>
+      <input type="text" v-model="select_name" required autocomplete="off"/> 
+      <!-- <button :onclick=>enter</button> -->
+      <h3>create</h3>
+      <input type="text" v-model="create_name" autocomplete="off"/> 
+      {{ rooms }}
+      <span v-if="room_exists"> 既に存在します </span>
+      <!-- <button :onclick="createRoom()">create and enter</button> -->
   </div>
 </template>
 
@@ -22,64 +20,64 @@
 </style>
 
 <script>
-      // function getRooms() {
-      //   // 1. new XMLHttpRequest オブジェクトを作成
-      //   let xhr = new XMLHttpRequest();
-      //   // 2. 設定: URL /article/.../load に対する GET-リクエスト
-      //   xhr.open('GET', 'http://localhost:80/rooms');
-      //   xhr.responseType = 'json';
-      //   // 3. ネットワーク経由でリクエスト送信
-      //   xhr.send();
-
-      //   // 4. レスポンスを受け取った後に呼び出されます
-      //   xhr.onload = function() {
-      //     return  xhr.response.rooms;
-      //   };
-      // };
-      // var rooms = [];
-      //  ooms = getRooms();
-
-      // window.onload = function () {
-      //   document.getElementById( "room_name" ).onkeyup = function(){
-      //     let room_name = document.getElementById( "room_name" ).value;
-      //     if (rooms.index0f(room_name) >= 0) {
-      //       document.getElementById( "rooms_exists" ).innerHTML = "既に存在します";
-      //       console.log(1)
-      //     } else {
-      //       document.getElementById( "rooms_exists" ).innerHTML = "";
-      //       console.log(2)
-      //     }
-      //   };
-      // }
-
-      // function createRoom() {
-      //   let room_name = document.getElementById( "room_name" ).value;
-      //   let formData = new FormData();
-      //   formData.append("room_name", room_name);
-      //   // send it out
-      //   let xhr = new XMLHttpRequest();
-      //   xhr.open('POST', 'http://localhost:80/rooms/' + room_name);
-      //   xhr.responseType = 'json';
-      //   // 3. ネットワーク経由でリクエスト送信
-      //   xhr.send();
-      //   // 4. レスポンスを受け取った後に呼び出されます
-      //   xhr.onload = function() {
-      //     // let room_id =  xhr.response.room_id;
-      //     // let user_name = document.getElementById( "user_name" ).value;
-      //     // let xhr_second = new XMLHttpRequest();
-      //     // let json = JSON.stringify({
-      //     //   "name": user_name,
-      //     //   "room_id": room_id
-      //     // });
-      //     // xhr_second.open("POST", 'http://localhost:80/chat')
-      //     // xhr_second.setRequestHeader('Content-type', 'application/json; charset=utf-8');
-      //     // // xhr.responseType = 'document';
-      //     // xhr_second.send(json);
-      //     // xhr_second.onload = function() {
-      //     //   let chat_dom = xhr_second.response;
-      //     //   document.querySelector("body").innerHTML = chat_dom;
-      //     //   // document.getElementById( "chat" ).innerHTML = chat_dom;
-      //     // };
-      //   }
-      // }
+export default {
+  data: function () {
+    return {
+      user_name: "",
+      rooms: [],
+      create_name: "",
+      select_name: "",
+      room_exists: false,
+      URL: "http://localhost:80/"
+    }
+  },
+  created () {
+    this.getRooms();
+  },
+  computed: {
+  },
+  watch: {
+    create_name: function() {
+      this.room_exists = this.rooms.indexOf(this.create_name) >= 0;
+    },
+  },
+  methods: {
+    getRooms: function() {
+      fetch(this.URL + "rooms", {
+        method: "GET",
+      }).then(response => response.json())
+      .then(json => {
+        this.rooms = json.rooms;
+      });
+    },
+    createRoom: function () {
+      let room_name = document.getElementById( "room_name" ).value;
+      let formData = new FormData();
+      formData.append("room_name", room_name);
+      // send it out
+      let xhr = new XMLHttpRequest();
+      xhr.open('POST', 'http://localhost:80/rooms/' + room_name);
+      xhr.responseType = 'json';
+      xhr.send();
+      xhr.onload = function() {
+        let room_id =  xhr.response.room_id;
+        let user_name = document.getElementById( "user_name" ).value;
+        let xhr_second = new XMLHttpRequest();
+        let json = JSON.stringify({
+          "name": user_name,
+          "room_id": room_id
+        });
+        xhr_second.open("POST", 'http://localhost:80/chat')
+        xhr_second.setRequestHeader('Content-type', 'application/json; charset=utf-8');
+        xhr.responseType = 'document';
+        xhr_second.send(json);
+        xhr_second.onload = function() {
+          let chat_dom = xhr_second.response;
+          document.querySelector("body").innerHTML = chat_dom;
+          // document.getElementById( "chat" ).innerHTML = chat_dom;
+        };
+      }
+    }
+  },
+}
 </script>
