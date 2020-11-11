@@ -5,12 +5,24 @@
       <h2>Your Name: </h2>
       <input type="text" v-model="user_name" autocomplete="off"/>
       <h2>Room: </h2>
-      <h3>select</h3>
-      <input type="text" v-model="select_name" required autocomplete="off"/> 
+      <v-tabs v-model="tab">
+        <v-tab> Create Room </v-tab>
+        <v-tab> Select Room </v-tab>
+      </v-tabs>
+        <v-tabs-items v-model="tab">
+          <v-tab-item v-for="item in items" :key="item" >
+          </v-tab-item>
+        </v-tabs-items>
+
+        <h3>select</h3>
+        <select v-model="selected">
+          <option v-for="(room, i) in rooms" v-bind:key="i" v-bind:value="i">
+          {{ room }}
+        </option>
+      </select>
       <!-- <button :onclick=>enter</button> -->
       <h3>create</h3>
       <input type="text" v-model="create_name" autocomplete="off"/> 
-      {{ rooms }}
       <span v-if="room_exists"> 既に存在します </span>
       <!-- <button :onclick="createRoom()">create and enter</button> -->
   </div>
@@ -26,7 +38,7 @@ export default {
       user_name: "",
       rooms: [],
       create_name: "",
-      select_name: "",
+      selected: "",
       room_exists: false,
       URL: "http://localhost:80/"
     }

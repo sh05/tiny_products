@@ -18,7 +18,7 @@ services:
       dockerfile: DockerfileFront
     volumes:
       - ./hee_chat:/home/work
-    working_dir: /home/work/hee_chat
+    working_dir: /home/work/
     container_name: hee_chat_front
     ports:
       - "8080:8080"
