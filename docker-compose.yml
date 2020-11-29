@@ -3,7 +3,7 @@ services:
   hee_chat_back:
     command: /bin/bash -c "uvicorn app.main:app --reload --host 0.0.0.0 --port 80"
     build:
-      context: ./hee_chat/docker
+      context: ./dockerfiles/hee_chat/
       dockerfile: DockerfileBack
     volumes:
       - ./hee_chat/:/app
@@ -14,7 +14,7 @@ services:
   hee_chat_front:
     command: npm run serve
     build:
-      context: ./hee_chat/docker
+      context: ./dockerfiles/hee_chat/
       dockerfile: DockerfileFront
     volumes:
       - ./hee_chat:/home/work
@@ -22,3 +22,12 @@ services:
     container_name: hee_chat_front
     ports:
       - "8080:8080"
+  nuxt:
+    command: npm run dev
+    image: gerardojunior/nuxtjs:stable
+    volumes:
+      - ./nuxt_firebase:/home/work
+    working_dir: /home/work/
+    container_name: nuxt
+    ports:
+      - "3000:3000"
