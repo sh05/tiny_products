@@ -1,6 +1,6 @@
 # hanoi
 
-![hanoi](https://user-images.githubusercontent.com/25560868/97781793-176bfd00-1bd1-11eb-89b0-e102cf7f81c5.gif)
+![hanoi_light](https://user-images.githubusercontent.com/25560868/101671557-f92ed200-3a97-11eb-94ef-05de81c2e9ce.gif)
 
 ## todo
 cpp, go, rustのどれかでも書く
